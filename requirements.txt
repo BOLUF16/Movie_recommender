@@ -1,0 +1,20 @@
+apache-airflow==2.10.5
+# apache-airflow-providers-common-compat==1.5.0
+# apache-airflow-providers-common-io==1.5.0
+# apache-airflow-providers-common-sql==1.23.0
+# apache-airflow-providers-fab==1.5.3
+# apache-airflow-providers-ftp==3.12.2
+# apache-airflow-providers-http==5.2.0
+# apache-airflow-providers-imap==3.8.2
+# apache-airflow-providers-smtp==2.0.0
+# apache-airflow-providers-sqlite==4.0.0
+azure-core==1.32.0
+azure-storage-blob==12.24.1
+huggingface-hub==0.29.1
+langchain-core==0.3.37
+langchain-huggingface==0.1.2
+pandas==2.2.3
+pydantic==2.10.6
+qdrant-client==1.12.1
+SQLAlchemy==1.4.54
+kaggle==1.6.17

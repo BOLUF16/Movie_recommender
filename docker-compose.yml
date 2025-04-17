@@ -1,0 +1,69 @@
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - "5430:5432"
+    networks:
+      - airflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+  
+  webserver:
+    image: apache/airflow:2.6.0-python3.9  
+    command: webserver
+    entrypoint: ['/opt/airflow/scripts/entrypoint.sh']
+    depends_on:
+      - postgres
+    environment:
+      - LOAD_EX=n
+      - EXECUTOR=Sequential
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts/entrypoint.sh:/opt/airflow/scripts/entrypoint.sh
+      - ./requirements.txt:/opt/airflow/requirements.txt
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /opt/airflowairflow-webserver.pid]"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    networks:
+      - airflow-network
+
+  scheduler:
+    image: apache/airflow:2.6.0-python3.9
+    depends_on:
+      webserver:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts/entrypoint.sh:/opt/airflow/scripts/entrypoint.sh
+      - ./requirements.txt:/opt/airflow/requirements.txt
+    command: bash -c "pip install --default-timeout=10000 -r /opt/airflow/requirements.txt && airflow db upgrade"
+    networks:
+      - airflow-network
+
+networks:
+  airflow-network:
+    driver: bridge
